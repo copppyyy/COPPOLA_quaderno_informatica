@@ -1,145 +1,95 @@
+<?php
+session_start(); // Avvia la sessione. Necessario per poter accedere a $_SESSION
+
+// Se non esistono ancora, inizializza le variabili di sessione per memorizzare gli utenti registrati e la cronologia degli accessi
+if (!isset($_SESSION["users"])) {
+    $_SESSION["users"] = []; // Memorizza gli utenti registrati (come una lista)
+}
+if (!isset($_SESSION["history"])) {
+    $_SESSION["history"] = []; // Memorizza la cronologia degli accessi (come una lista)
+}
+
+// Controlla se il modulo di registrazione è stato inviato (se è una richiesta POST)
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Prende e sanitizza i dati dell'utente per prevenire attacchi XSS
+    $name = htmlspecialchars($_POST["name"]); // Sanitizza il nome
+    $email = htmlspecialchars($_POST["email"]); // Sanitizza l'email
+    $password = password_hash($_POST["password"], PASSWORD_DEFAULT); // Cifra la password per la sicurezza
+
+    // Controlla se il nome o l'email esistono già tra gli utenti registrati
+    foreach ($_SESSION["users"] as $user) {
+        if ($user["name"] === $name || $user["email"] === $email) {
+            // Se il nome o l'email sono già registrati, mostra un errore
+            $error = "Nome o email già registrati!";
+            break; // Interrompe il ciclo non appena trova una corrispondenza
+        }
+    }
+
+    // Se non ci sono errori, salva l'utente nella sessione e reindirizza alla pagina iniziale
+    if (!isset($error)) {
+        // Aggiungi l'utente registrato alla sessione
+        $_SESSION["users"][] = ["name" => $name, "email" => $email, "password" => $password];
+        $_SESSION["name"] = $name; // Memorizza il nome dell'utente corrente nella sessione
+        $_SESSION["email"] = $email; // Memorizza l'email dell'utente corrente nella sessione
+
+        // Aggiungi un record alla cronologia degli accessi con il nome, email e orario
+        $_SESSION["history"][] = ["name" => $name, "email" => $email, "time" => date("Y-m-d H:i:s")];
+
+        header("Location: pagina_inizale_accesso.php"); // Reindirizza l'utente alla pagina iniziale
+        exit(); // Termina il flusso di script
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Raccolta Info</title>
+    <title>Login</title>
 </head>
 <body>
-<a href="index.html"> 
-     &#8592; Torna alla Home
-    </a>
-<H1 align=center>Raccolta Informazioni Utente </H1>
-<form align=center action="accesso(c).php" method="post">
+    <!-- Link per tornare alla pagina iniziale -->
+    <a href="pagina_inizale_accesso.php">← Torna alla pagina iniziale</a>
+    <h1>Login</h1>
+    <!-- Mostra l'errore se il nome o l'email sono già registrati -->
+    <?php if (isset($error)) echo "<p style='color:red;'>$error</p>"; ?>
+    <form method="POST" action="">
+        <label for="name">Nome:</label>
+        <input type="text" id="name" name="name" required>
+        <br>
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required>
+        <br>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required>
+        <br>
+        <button type="submit">Login</button>
+    </form>
 
-<label for="name"><b>Nome*:</b></label>
-
-    <input type="text" id="name" name="name" required pattern="[A-Za-z\s]+" title="Inserisci solo lettere">
-   
-
-    <label for="surname"><b>Cognome*:</b></label>
-    <input type="text" id="surname" name="surname" required pattern="[A-Za-z\s-']+" title="Inserisci solo lettere">
-    
-    <br>
-    <br>
-<tr>
-<td>Date*:</td><td><input type="date" name="date" title="Inserisci solo numeri" required / /><br /></td>
-</tr>
-<br>
-<label for="email"><b>Email*:</b></label>
-    <input type="text" id="email" name="email" title="Inserisci i dati" required />
-    
-    <label for="codice fiscale"><b>CodiceFiscale*:</b></label>
-    <input type="text" id="codicefiscale" name="codicefiscale" maxlength="20" >
-    <br>
-    <label for="numerotelefono"><b>Cellulare ( inserisci anche il prefisso ):</b></label>
-    <input type="text" id="numerotelefono" name="numerotelefono" pattern="[0-9]+" title="Sono ammessi solo numeri" maxlength="14" >
-<br>
-<br>
-
-    <label for="Via">Via*:</label>
-    <input type="text" id="Via" name="Via" required>
-    <br>
-
-    <label for="Città">Città*:</label>
-    <input type="text" id="Città" name="Città" required>
-    <br>
-
-    <label for="stato">stato*:</label>
-    <input type="text" id="stato" name="stato" required>
-    <br>
-
-    <label for="CP">CP*:</label>
-    <input type="text" id="CP" name="CP" pattern="[0-9]+" title="inserisci un CP valido " maxlength="5" required>
-    <br>
-
-    <label for=" Provincia ">Provincia*:</label>
-    <input type="text" id="Provincia" name="Provincia" required>
-    <br>
+    <p>
+in questa pagina invece avviamo sempre una sessione che serve sempre per <br>
+ricordare al sito i nostri dati e chi siamo <br>
+dopo in un if viene eseguito un controllo per le variabili <br>
+di registrazione quindi se non esistono non inserisce nulla <br>
+mentre se l 'utente inserisce qualcosa viene salvato e registrato come se fosse una lista <br>
+memorizzato grazie ad History che permette di memorizzare la cronologia <br>
+dopo viene fatto un controllo sul modulo di registrazione se i dati dell'utente siano stati inviati con POST<br>
+fatto ciò prende i dati dell'utente e previene gli attacchi xss con htmlspecialchars<br>
+e cifra anche la password per sicurezza. <br>
+successivamente si esegue un controllo se mail, nome, siano già esistenti e in tal caso non vi è possibile accederci <br>
+quindi esegue un foreach quindi per ogni sessione di user quindi il dato che viene salvato nel sito <br> se nome e email hanno una coincidenza perfetta <br> con una mail o password già presente nel sito <br>
+compare un messaggio di errore e viene interrotto il ciclo quando ciò accade <br>
+se invece in tal caso <br> non ci dovessero esserci errori viene salvato l'utente nella sessione e aggiunto alla lista della cronologia degli accessi <br>
+e reindirizzati alla pagina iniziale. <br>
+finita questa sezione di logica si passa alla parte di stampa e viene <br>
+inserito una riga di php che serve per comunicare all'utente se email e password siano già registrati.<br>
+in un form viene inserito nome email e password <br> 
+e un pulsante di invio.<br>
+e come sempre per agevolare la navigabilità una freccia in alto a sinistra che reindirizza l'utente alla pagina precedente. <br> 
 
 
-    <label for="nickname">Nickname:</label>
-    <input type="text" id="nickname" name="nickname" required><br>
-
-    
-
-    <label for="password">Password*:</label>
-<input type="password" id="password" name="password" 
-    pattern="^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$" 
-    maxlength="20" required 
-    title="La password deve contenere almeno una lettera maiuscola, un numero, un carattere speciale e almeno 8 caratteri.">
-<br>
-<br>
-<input name="submit" type="submit" value="Invia" />
-<br>
-<button type="reset">reset</button>
-
-</form>
-
-
-<?php
-if (isset($_POST['name'], $_POST['surname'], $_POST['nickname'])) {
-    $name = trim($_POST['name']);
-    $surname = trim($_POST['surname']);
-    $nickname = trim($_POST['nickname']);
-
-    // Verifica che il nickname sia diverso da nome e cognome
-    if (strcasecmp($nickname, $name) === 0 || strcasecmp($nickname, $surname) === 0) {
-        echo "Errore: Il nickname deve essere diverso dal nome e dal cognome.";
-    } else {
-        echo "Registrazione completata con successo!<br>";
-        echo "Nome: " . htmlspecialchars($name) . "<br>";
-        echo "Cognome: " . htmlspecialchars($surname) . "<br>";
-        echo "Nickname: " . htmlspecialchars($nickname);
-        
-    }
-} else {
-    echo "Per favore, compila tutti i campi del form assegnati da un simbolo ( * ).";
-}
-?>
-<?php
-if (isset($_POST["email"])) { // Controlla se il campo email è stato inviato
-    $email = $_POST["email"];
-    
-    // Controlla che l'email sia valida
-    if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        echo "L'indirizzo email è valido.";
-    } else {
-        echo "L'indirizzo email non è valido.";
-    }
-} else {
-    echo "Il campo email è obbligatorio.";
-}
-
-
-?>
-
-<p> per fare tutti questi punti di selezione ho usato un semplicissimo form dove al suo interno<br> sono stati inseriti i valori necessari per la pagina WEB<br>
-ho usato per tutti un input type text un nome e id scelto da me mentre per i punti obbligatori ho inserito ( required) vale a dire valore obbligatorio <br>
-ho usato un (pattern) per scegliere i valori/ lettere che si posso usare per compilare il il label <br>
-mentre per la data ho usato un input type di tipo 'date' creata già da html ti permette di accedere più facilmente alla data<br>
-nei punti dove era necessario inserire un numero massimo di parole o numeri ho usato un ( maxlenght) scegliendo il numero adeguato di valori,<br>
-per la sezione del numero di telfono ho usato un input type di tipo number, mentre invece per il controllo del nickname ( che il valore nickname deve essere != name & cognome)<br>
-ho usato un controllo con il php fuori dal form faceno un if ( isset) devi valori name-cognome-nickname. <br>
-il compito di isset è il controllo dei campi prima di accedere al valore inserito. successivamente all'interno dell'if <br>
-ho inserito le variabili = trim -> che rimuove gli spazi vuoti dentro la riga in modo tale da eliminare gli errori <br>
-ho fatto poi un altro if interno con strcasecmp(): che Confronta due stringhe ignorando le differenze tra maiuscole e minuscole<br>
-ciò serve per assicurarci che "Mario" e "mario" siano considerati uguali.<br> 
-ho fatto un controllo dei valori che se nickname e nome e cognome corrisponodo a 0 stampa errore.<br>
-mentre se non corrisponde nessun errore si prosegue con l avanzamento del programma passando i nuovi dati di nickname però con un accorgimento usando .<br>
-htmlspecialchars ( variabile 'x') rende i caratteri speciali in caso si fossere inseriti e li sostituisce in enitità HTML rendendo più sicura la visualizzazione della pagina.<br>
-ho fatto un'ultimo controllo in PHP della mail sempre con ( isset ) per verificare se il valore sia stato inviato poi con un if al suo interno <br>
- (filter_var($email, FILTER_VALIDATE_EMAIL)) == che serve per verificare se la variabile $email contiene un indirizzo email valido.
-per concludere <br> 
-in alto a sinistra ho inserito un pulsante con un ahref che ci permette di tornare alla pagina di indice inziale.
 </p>
 
-</table>
 
-
-
-
-
-</form>
 </body>
 </html>

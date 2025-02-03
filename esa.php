@@ -22,6 +22,9 @@
      &#8592; Torna alla Home
     </a>
 
+    <a href="torsello.php"> 
+     &#8592; Vai alla pagina del Torsello
+    </a>
     <H1 align=center>Primi 3 esercizi corrispettivi</H1>
 
     <h2>Esercizio 1 </h2>
@@ -51,6 +54,18 @@
     }
 
     echo "</table>";
+
+
+    for ($col = 1; $col <= 10; $col++) {
+        echo "<th>$col</th>"; // Intestazione della colonna
+    }
+
+    for ($col = 1; $col <= 10; $col++) {
+        $product = $col * $col; // Prodotto della riga e colonna
+        echo "<td>$product</td>"; // Mostra il prodotto
+    }
+
+
     ?>
 
     <h2> Esercizio 2 </h2>
